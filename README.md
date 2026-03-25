@@ -1,115 +1,115 @@
-# Bitacora del Capitan
+# Bitácora del Capitán
 
-A personal journal Android app powered by AI that automatically segments free-form entries (text or voice) into structured, categorized records.
+App Android de diario personal potenciada por IA que segmenta automáticamente entradas libres (texto o voz) en registros estructurados por categoría.
 
-## What it does
+## Qué hace
 
-Users write or dictate a single journal entry, and AI (Google Gemini) automatically:
+El usuario escribe o dicta una entrada de diario, y la IA (Google Gemini) automáticamente:
 
-- **Segments** the entry into multiple records by category (medication, exercise, emotions, relationships, sleep, nutrition, etc.)
-- **Detects goal events** (relapses, progress, achievements) from the entry content
-- **Resolves relative dates** ("yesterday at 6am", "last Monday") to actual timestamps
-- **Suggests new categories** when content doesn't fit existing ones
-- **Provides an AI coach** with configurable personality, evidence-based advice, and web-grounded sources
+- **Segmenta** la entrada en múltiples registros por categoría (medicación, ejercicio, emociones, relaciones, sueño, alimentación, etc.)
+- **Detecta eventos de metas** (recaídas, progreso, logros) a partir del contenido
+- **Resuelve fechas relativas** ("ayer a las 6am", "el lunes pasado") a timestamps reales
+- **Sugiere nuevas categorías** cuando el contenido no encaja en las existentes
+- **Ofrece un coach IA** con personalidad configurable, consejos basados en evidencia y fuentes web verificadas
 
-## Key Features
+## Funcionalidades principales
 
-- **Smart Segmentation**: One entry becomes N structured segments, each with category, sentiment, intensity, and metadata
-- **Goal Tracking**: Define goals (avoid/limit/achieve), AI detects events automatically, streak counting
-- **AI Coach**: Chat with a configurable coach that has full context of your journal history. Supports personality presets (Engineer, Psychologist, Spartan) or custom prompts
-- **Offline-First**: Entries are saved locally (SQLite) before syncing. Never lose data even without network
-- **Voice Input**: Record audio entries, AI transcribes and segments them
-- **Privacy**: Biometric authentication, per-user API keys stored in device secure enclave, full data isolation via Row Level Security
-- **Multi-User**: Complete data isolation between users with Supabase RLS on all tables
-- **External API**: Generate tokens for external AI agents to query your data (read-only)
-- **Dashboard**: Process day counter, goal streaks, weekly activity dots, recent segments
+- **Segmentación inteligente**: Una entrada se convierte en N segmentos estructurados, cada uno con categoría, sentimiento, intensidad y metadata
+- **Seguimiento de metas**: Definí metas (evitar/limitar/lograr), la IA detecta eventos automáticamente, cálculo de rachas (streaks)
+- **Coach IA**: Chateá con un coach configurable que tiene contexto completo de tu bitácora. Soporta presets de personalidad (Ingeniero, Psicólogo, Espartano) o prompts personalizados
+- **Offline-First**: Las entradas se guardan localmente (SQLite) antes de sincronizar. Nunca se pierde data aunque no haya red
+- **Entrada por voz**: Grabá audio, la IA lo transcribe y segmenta
+- **Privacidad**: Autenticación biométrica, API keys por usuario almacenadas en el enclave seguro del dispositivo, aislamiento total de datos via Row Level Security
+- **Multi-usuario**: Aislamiento completo de datos entre usuarios con Supabase RLS en todas las tablas
+- **API externa**: Generá tokens para que agentes IA externos consulten tus datos (solo lectura)
+- **Dashboard**: Contador de días del proceso, rachas de metas, actividad semanal, segmentos recientes
 
-## Tech Stack
+## Stack tecnológico
 
-| Layer | Technology |
+| Capa | Tecnología |
 |---|---|
 | Framework | React Native + Expo SDK 55 |
-| Routing | Expo Router (file-based) |
-| Styling | NativeWind v4 (Tailwind CSS) |
-| State | Zustand |
+| Ruteo | Expo Router (basado en archivos) |
+| Estilos | NativeWind v4 (Tailwind CSS) |
+| Estado | Zustand |
 | Backend | Supabase (Auth, PostgreSQL, Storage, Edge Functions) |
-| AI | Google Gemini 2.0 Flash (REST API, client-side) |
-| Local DB | expo-sqlite (offline queue) |
-| Security | expo-secure-store, expo-local-authentication |
+| IA | Google Gemini 2.0 Flash (API REST, llamadas desde el cliente) |
+| DB local | expo-sqlite (cola offline) |
+| Seguridad | expo-secure-store, expo-local-authentication |
 | Audio | expo-av |
 
-## Architecture
+## Arquitectura
 
 ```
-Device (Android)
-├── expo-sqlite (local queue, offline-first)
+Dispositivo (Android)
+├── expo-sqlite (cola local, offline-first)
 ├── expo-secure-store (API keys, tokens)
 ├── React Native + Expo Router
-│   ├── Screens: Auth, Onboarding, Dashboard, Entry, History, Coach, Settings
+│   ├── Pantallas: Auth, Onboarding, Dashboard, Entrada, Historial, Coach, Config
 │   ├── Zustand Stores: auth, entries, goals, coach, categories
-│   └── LLM Service (abstraction layer)
-│       └── Gemini Provider (REST API, client-side calls)
+│   └── Servicio LLM (capa de abstracción)
+│       └── Provider Gemini (API REST, llamadas desde el cliente)
 └── Supabase
-    ├── Auth (email/password, Google OAuth)
-    ├── PostgreSQL (11 tables, RLS on all)
-    ├── Storage (audio files)
-    └── Edge Functions (agent-query API)
+    ├── Auth (email/contraseña, Google OAuth)
+    ├── PostgreSQL (11 tablas, RLS en todas)
+    ├── Storage (archivos de audio)
+    └── Edge Functions (API agent-query)
 ```
 
-### Key Design Decision
+### Decisión clave de diseño
 
-Gemini API is called **from the client**, not from a backend. Each user provides their own API key, stored in the device's secure enclave. This eliminates the need for a proxy server and keeps the architecture simple.
+La API de Gemini se llama **desde el cliente**, no desde un backend. Cada usuario provee su propia API key, almacenada en el enclave seguro del dispositivo. Esto elimina la necesidad de un servidor proxy y mantiene la arquitectura simple.
 
-## Database Schema
+## Esquema de base de datos
 
-11 tables with Row Level Security:
+11 tablas con Row Level Security:
 
-- `user_profiles` — User settings, coach config, process tracking
-- `categories` — System (12 default) + user-created categories
-- `raw_entries` — Original journal entries (text/audio)
-- `segments` — AI-extracted semantic segments per category
-- `goals` — User-defined goals (avoid/limit/achieve)
-- `goal_events` — AI-detected or manual goal events
-- `coach_conversations` / `coach_messages` — Chat history with AI coach
-- `category_suggestions` — AI-suggested new categories (pending approval)
-- `weight_logs` — Weight tracking history
-- `api_tokens` — SHA-256 hashed tokens for external API access
+- `user_profiles` — Configuración del usuario, config del coach, seguimiento del proceso
+- `categories` — Categorías del sistema (12 por defecto) + creadas por el usuario
+- `raw_entries` — Entradas originales del diario (texto/audio)
+- `segments` — Segmentos semánticos extraídos por la IA, por categoría
+- `goals` — Metas definidas por el usuario (evitar/limitar/lograr)
+- `goal_events` — Eventos de metas detectados por IA o manuales
+- `coach_conversations` / `coach_messages` — Historial de chat con el coach IA
+- `category_suggestions` — Categorías sugeridas por la IA (pendientes de aprobación)
+- `weight_logs` — Historial de registro de peso
+- `api_tokens` — Tokens hasheados con SHA-256 para acceso a la API externa
 
-## Project Structure
+## Estructura del proyecto
 
 ```
 src/
-├── app/                    # Expo Router screens
-│   ├── (auth)/             # Login, Register
-│   ├── (tabs)/             # Dashboard, NewEntry, History, Coach, Settings
-│   ├── onboarding.tsx      # 5-step setup wizard
-│   └── biometric.tsx       # Biometric auth gate
-├── db/local.ts             # SQLite offline queue
+├── app/                    # Pantallas (Expo Router)
+│   ├── (auth)/             # Login, Registro
+│   ├── (tabs)/             # Dashboard, NuevaEntrada, Historial, Coach, Config
+│   ├── onboarding.tsx      # Wizard de configuración inicial (5 pasos)
+│   └── biometric.tsx       # Verificación biométrica
+├── db/local.ts             # Cola offline SQLite
 ├── hooks/                  # useAuth, useBiometric, useProcessEntry, useSync
 ├── lib/
-│   ├── llm/                # LLM abstraction (Gemini provider, prompts, schemas)
-│   ├── supabase.ts         # Supabase client
-│   ├── auth.ts             # Auth helpers
-│   ├── crypto.ts           # SHA-256, token generation
-│   ├── dates.ts            # Date utilities
-│   └── notifications.ts    # Local notifications
+│   ├── llm/                # Abstracción LLM (provider Gemini, prompts, schemas)
+│   ├── supabase.ts         # Cliente Supabase
+│   ├── auth.ts             # Helpers de autenticación
+│   ├── crypto.ts           # SHA-256, generación de tokens
+│   ├── dates.ts            # Utilidades de fecha
+│   └── notifications.ts    # Notificaciones locales
 ├── store/                  # Zustand stores (auth, entries, goals, coach, categories)
-└── types/                  # TypeScript interfaces
+└── types/                  # Interfaces TypeScript
 supabase/
-├── migrations/             # SQL schema
-└── functions/agent-query/  # Edge function for external AI agents
+├── migrations/             # Schema SQL
+└── functions/agent-query/  # Edge function para agentes IA externos
 ```
 
-## Setup
+## Configuración
 
-### Prerequisites
+### Prerequisitos
 
 - Node.js >= 20.19
 - Expo CLI (`npm install -g expo-cli`)
-- A [Supabase](https://supabase.com) project
-- A [Google Gemini API key](https://aistudio.google.com) (free tier)
+- Un proyecto en [Supabase](https://supabase.com)
+- Una [API key de Google Gemini](https://aistudio.google.com) (tier gratuito)
 
-### 1. Clone and install
+### 1. Clonar e instalar
 
 ```bash
 git clone https://github.com/nicofernando/bitacora-del-capitan.git
@@ -117,70 +117,70 @@ cd bitacora-del-capitan
 npm install
 ```
 
-### 2. Configure environment
+### 2. Configurar variables de entorno
 
-Create `.env.local`:
+Crear `.env.local`:
 
 ```
-EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+EXPO_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
 ```
 
-### 3. Run database migration
+### 3. Ejecutar migración de base de datos
 
-Execute the SQL in `supabase/migrations/001_initial_schema.sql` in your Supabase SQL Editor.
+Ejecutar el SQL de `supabase/migrations/001_initial_schema.sql` en el SQL Editor de Supabase.
 
-### 4. Start development
+### 4. Iniciar desarrollo
 
 ```bash
 npx expo start
 ```
 
-For Android device testing, use a [development build](https://docs.expo.dev/develop/development-builds/introduction/):
+Para probar en un dispositivo Android, se necesita un [development build](https://docs.expo.dev/develop/development-builds/introduction/):
 
 ```bash
 npx expo run:android
-# or
+# o
 eas build --platform android --profile development
 ```
 
-> **Note**: Expo Go does not support SDK 55 yet. A development build is required.
+> **Nota**: Expo Go no soporta SDK 55 todavía. Se requiere un development build.
 
-## External API
+## API externa
 
-Generate an API token from Settings to allow external AI agents to query your data:
+Generá un token desde Configuración para permitir que agentes IA externos consulten tus datos:
 
 ```bash
-# Get segments by category
+# Obtener segmentos por categoría
 curl -H "Authorization: Bearer <token>" \
-  "https://your-project.supabase.co/functions/v1/agent-query?action=segments&category=medication&from=2026-01-01"
+  "https://tu-proyecto.supabase.co/functions/v1/agent-query?action=segments&category=medication&from=2026-01-01"
 
-# Get active goals with streaks
+# Obtener metas activas con rachas
 curl -H "Authorization: Bearer <token>" \
-  "https://your-project.supabase.co/functions/v1/agent-query?action=goals"
+  "https://tu-proyecto.supabase.co/functions/v1/agent-query?action=goals"
 
-# Get 30-day summary
+# Obtener resumen de 30 días
 curl -H "Authorization: Bearer <token>" \
-  "https://your-project.supabase.co/functions/v1/agent-query?action=summary&days=30"
+  "https://tu-proyecto.supabase.co/functions/v1/agent-query?action=summary&days=30"
 ```
 
-## Default Categories
+## Categorías por defecto
 
-| Category | Icon | Description |
+| Categoría | Icono | Descripción |
 |---|---|---|
-| Medication | 💊 | Medications, supplements, doses, schedules, side effects |
-| Exercise | 🏃 | Physical activity, sports, walks, cold showers |
-| Nutrition | 🍎 | Meals, diet, hydration, fasting, weight |
-| Sleep | 😴 | Sleep quality, bedtime, insomnia, naps |
-| Emotions | 🎭 | Emotional state, anxiety, motivation, mental clarity |
-| Relationships | 👥 | Partner interactions, conflicts, communication |
-| Health | 🏥 | Physical symptoms, medical appointments, wellness |
-| Personal Growth | 🌱 | Learning, reflections, habits, discipline |
-| Work | 💼 | Productivity, projects, meetings, professional focus |
-| Family | 🏠 | Children, family dynamics, parenting |
-| Finances | 💰 | Expenses, income, debts, investments |
-| General | 📝 | Everything that doesn't fit elsewhere |
+| Medicación | 💊 | Medicamentos, suplementos, dosis, horarios, efectos secundarios |
+| Ejercicio | 🏃 | Actividad física, deportes, caminatas, duchas frías |
+| Alimentación | 🍎 | Comidas, dieta, hidratación, ayuno, peso |
+| Sueño | 😴 | Calidad del sueño, hora de dormir, insomnio, siestas |
+| Emociones | 🎭 | Estado emocional, ansiedad, motivación, claridad mental |
+| Relaciones | 👥 | Interacciones con pareja, conflictos, comunicación |
+| Salud | 🏥 | Síntomas físicos, consultas médicas, bienestar |
+| Crecimiento | 🌱 | Aprendizaje, reflexiones, hábitos, disciplina |
+| Trabajo | 💼 | Productividad, proyectos, reuniones, enfoque profesional |
+| Familia | 🏠 | Hijos, dinámica familiar, crianza |
+| Finanzas | 💰 | Gastos, ingresos, deudas, inversiones |
+| General | 📝 | Todo lo que no encaja en otra categoría |
 
-## License
+## Licencia
 
-Private project. All rights reserved.
+Proyecto privado. Todos los derechos reservados.
