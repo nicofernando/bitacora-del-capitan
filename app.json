@@ -35,7 +35,12 @@
       "bundler": "metro"
     },
     "plugins": [
-      ["expo-router", { "root": "./src/app" }],
+      [
+        "expo-router",
+        {
+          "root": "./src/app"
+        }
+      ],
       "expo-secure-store",
       "expo-sqlite",
       [
@@ -50,6 +55,15 @@
           "icon": "./assets/icon.png"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {
+        "root": "./src/app"
+      },
+      "eas": {
+        "projectId": "0aa545ab-505b-4a13-840b-43d4efcb8887"
+      }
+    },
+    "owner": "nico.fernando"
   }
 }
